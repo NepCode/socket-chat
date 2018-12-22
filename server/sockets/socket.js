@@ -1,7 +1,7 @@
 const { io } = require('../server');
 const {Usuarios} = require('../classes/usuarios');
 const {crearMensaje} = require('../util/util');
-
+//sockets desde clientes
 const usuarios = new Usuarios;
 
 io.on('connection', (client) => {
@@ -21,14 +21,15 @@ io.on('connection', (client) => {
 
         usuarios.agregarPersona(client.id, data.nombre, data.sala);
         client.broadcast.to(data.sala).emit('listaPersona', usuarios.getPersonasPorSala(data.sala));
-
+        client.broadcast.to(data.sala).emit('crearMensaje', crearMensaje('Administrador', `${data.nombre} se uniò al chat` ));
         callback(usuarios.getPersonasPorSala(data.sala));
     });
 
-    client.on('crearMensaje', (data) => {
+    client.on('crearMensaje', (data, callback) => {
         let persona = usuarios.getPersona(client.id);
         let mensaje = crearMensaje(persona.nombre, data.mensaje);
         client.broadcast.to(persona.sala).emit('crearMensaje', mensaje);
+        callback(mensaje);
     });
 
 
